@@ -1,0 +1,699 @@
+---
+title: "Nutrient_Graphing"
+author: "Sam Struthers"
+format: html
+editor: visual
+---
+
+# Set Up
+
+This document is to work on graphs related to nutrients from Reservoirs/ Mainstem
+
+```{r}
+source("package_loader.R")
+source("field_chemistry/00_colors_and_groups.R")
+#Determning number of Samples....
+
+reservoir_chemistry <- read_feather("data/field_chemistry/cleaned/reservoir_chem_2021_2022_062023.feather")%>%
+filter( watershed != "Comanche Reservoir" & watershed != "Hourglass Reservoir"& Year>= "2021")
+
+meta_units_table <- read_csv("data/field_chemistry/Poudre_Portal_Data/Units_Cam_Peak.csv")
+
+
+
+res_only_data <- reservoir_chemistry%>%
+filter(location=="Reservoir")%>%
+  pivot_longer(cols = c(ChlA, Turbidity, TSS, pH,ANC, Na, NH4, K, Mg, Ca, F, Cl, PO4, SO4, SC,NO3, DOC, DTN),names_to = "param", values_to = "value")
+
+
+
+
+
+```
+
+## Functions
+
+```{r}
+
+#timeline function
+
+nutrient_timeline_graph <-  function(nutrient, title = FALSE){
+  
+  
+  param_label <- filter(meta_units_table, Parameters == nutrient)%>%
+    select(combined)%>%
+    pull()
+  
+
+
+  if(title == FALSE){
+         ## NO TITLE 
+ notitle_graph <- res_only_data%>%
+    filter(param == nutrient& !is.na(param))%>%
+    ggplot(., aes(x=Date,y=value, color=Watershed_Level)) +
+  geom_point(size=3) +
+  geom_line(aes(group=site_code), size=1) +
+  scale_color_gradient2(name="Contributing Area Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  #geom_abline(aes(slope=0, intercept=2.5), color='black', linetype="dashed") +
+  labs(x = "", y = param_label) +
+  theme_bw(base_size=28) +
+  theme(legend.position = "none",
+  strip.background = element_blank(),
+  strip.text.x = element_blank())+
+  facet_wrap(~Year, scales = "free_x")
+ 
+ return(notitle_graph)
+  }
+
+## Title Plot
+if(title == TRUE){
+  title_graph <- res_only_data%>%
+    filter(param == nutrient& !is.na(param))%>%
+    ggplot(., aes(x=Date,y=value, color=Watershed_Level)) +
+  geom_point( size=3) +
+  geom_line(aes(group=site_code), size=1) +
+  scale_color_gradient2(name="Contributing Area Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  #geom_abline(aes(slope=0, intercept=2.5), color='black', linetype="dashed") +
+  labs(x = "", y = param_label) +
+  theme_bw(base_size=28) +
+  theme(legend.position = "none")+
+  facet_wrap(~Year, scales = "free_x")
+ 
+  return(title_graph)
+}
+
+  
+}
+
+
+
+
+#boxplot function
+
+nutrient_boxplot_graph <-  function(nutrient, title = FALSE, graph_size = 28){
+  
+  
+  param_label <- filter(meta_units_table, Parameters == nutrient)%>%
+    select(combined)%>%
+    pull()
+  
+         ## NO TITLE
+  if(title == FALSE){
+   
+  no_title_graph <- res_only_data%>%
+    filter(param == nutrient)%>%
+  ggplot() +
+  geom_boxplot(aes(x=reorder(site_code,order,max),y=value, middle=mean(value), fill=Watershed_Level)) +
+  scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+                        guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=graph_size)+
+  theme(legend.position = "none",
+  strip.background = element_blank(),
+  strip.text.x = element_blank())+
+  labs(x = "", y = param_label)+
+  facet_wrap(~Year)
+  
+ return( no_title_graph)
+  }
+  
+  if(title == TRUE){
+   
+  title_graph <- res_only_data%>%
+    filter(param == nutrient)%>%
+  ggplot() +
+  geom_boxplot(aes(x=reorder(site_code,order,max),y=value, middle=mean(value), fill=Watershed_Level)) +
+  scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+                        guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=graph_size)+
+  theme(legend.position = "none")+
+  labs(x = "", y = param_label)+
+  facet_wrap(~Year)
+  
+  return( title_graph)
+  }
+  
+}
+
+
+
+
+
+# nutrient_boxplot_swarm_graph = function(nutrient){
+#   
+#    param_label <- filter(meta_units_table, Parameters == nutrient)%>%
+#     select(combined)%>%
+#     pull()
+#   
+#   
+#   res_only_data%>%
+#     filter(param == nutrient)%>%
+#   ggplot() +
+#   geom_boxplot(aes(x=reorder(site_code,order,max),y=value, middle=mean(value), fill=Watershed_Level)) +
+#     geom_quasirandom(aes(x=reorder(site_code,order,max),y=value, fill = Watershed_Level),colour = "black", cex = 2.5, alpha = .75)+
+#   scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+#                         guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+#   theme_bw(base_size=28)+
+#   theme(legend.position = "none",
+#   strip.background = element_blank(),
+#   strip.text.x = element_blank())+
+#   labs(x = "", y = param_label)+
+#   facet_wrap(~Year)
+# }
+# 
+# nutrient_boxplot_swarm_graph_title = function(nutrient){
+#   res_only_data%>%
+#     filter( == nutrient)%>%
+#   ggplot() +
+#   geom_boxplot(aes(x=reorder(site_code,order,max),y=value, middle=mean(value), fill=Watershed_Level)) +
+#      geom_quasirandom(aes(x=reorder(site_code,order,max),y=value),color = "black", cex = 2.5, alpha = .75)+
+#   scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+#                         guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+#     scale_color_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+#                         guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+#   theme_bw(base_size=28)+
+#   theme(legend.position = "none")+
+#   labs(x = "", y = nutrient)+
+#   facet_wrap(~Year)
+# }
+
+```
+
+# Graphing
+
+These are collected from grab samples at our reservoir sites. Samples are collected weekly between June and November and analyzed for key nutrients.
+
+## Timeline 2021 and 2022 Reservoir data
+
+```{r}
+
+no3_timeline <-nutrient_timeline_graph( 'NO3')
+po4_timeline <-nutrient_timeline_graph( 'PO4')
+so4_timeline <-nutrient_timeline_graph( 'SO4')
+chla_timeline <-nutrient_timeline_graph( 'ChlA')
+pH_timeline <-nutrient_timeline_graph( 'pH')
+tss_timeline <-nutrient_timeline_graph( 'TSS')
+na_timeline <-nutrient_timeline_graph( 'Na', title = TRUE)
+nh4_timeline <-nutrient_timeline_graph( 'NH4')
+sc_timeline <-nutrient_timeline_graph( 'SC', title = TRUE)
+k_timeline <-nutrient_timeline_graph( 'K')
+mg_timeline <-nutrient_timeline_graph( 'Mg')
+ca_timeline <-nutrient_timeline_graph( 'Ca')
+f_timeline <-nutrient_timeline_graph( 'F')
+cl_timeline <-nutrient_timeline_graph( 'Cl')
+
+
+
+# timeline graphs 1
+
+ggarrange(sc_timeline,no3_timeline,po4_timeline,so4_timeline,f_timeline,
+          na_timeline, k_timeline,  ca_timeline, cl_timeline,mg_timeline,
+          ncol=1, nrow=12)#, common.legend=T) 
+
+ggarrange(sc_timeline,no3_timeline,po4_timeline,so4_timeline,f_timeline,
+          ncol=1, nrow=5)
+#ggsave('output/nutrient_timeline_1_final.jpg', width = 24, height = 20, units = "in", dpi = 300)
+
+ggarrange(na_timeline, mg_timeline,k_timeline, ca_timeline, cl_timeline,   ncol=1, nrow=5)
+#ggsave('output/nutrient_timeline_2_final.jpg', width = 24, height = 20, units = "in", dpi = 300)
+
+# extra timeline graphs
+
+ggarrange(na_timeline,mg_timeline,ca_timeline,f_timeline,cl_timeline, ncol=1, nrow=6)
+
+#ggsave('output/extras_timeline_na_mg_ca_f_cl.jpg', width = 12.5, height = 16)
+
+
+```
+
+## Boxplots 2021 and 2022 Reservoir data
+
+Mimics graphs from 2021 report. Faceted for 2022 data
+
+```{r}
+
+no3_boxplot <-nutrient_boxplot_graph( 'NO3', title = TRUE)
+po4_boxplot <-nutrient_boxplot_graph( 'PO4')
+so4_boxplot <-nutrient_boxplot_graph( 'SO4')
+chla_boxplot <-nutrient_boxplot_graph( 'ChlA')
+pH_boxplot <-nutrient_boxplot_graph( 'pH')
+tss_boxplot <-nutrient_boxplot_graph( 'TSS')
+na_boxplot <-nutrient_boxplot_graph( 'Na')
+nh4_boxplot <-nutrient_boxplot_graph( 'NH4')
+k_boxplot <-nutrient_boxplot_graph( 'K')
+mg_boxplot <-nutrient_boxplot_graph( 'Mg')
+ca_boxplot <-nutrient_boxplot_graph( 'Ca')
+f_boxplot <-nutrient_boxplot_graph( 'F')
+cl_boxplot <-nutrient_boxplot_graph( 'Cl')
+sc_boxplot <- nutrient_boxplot_graph('SC', title = TRUE)
+
+
+#boxplot fig 1
+
+ ggarrange(sc_boxplot,no3_boxplot,po4_boxplot,so4_boxplot,k_boxplot,
+           ncol=1, nrow=6)#, common.legend=T) 
+ #ggsave('output/nutrient_boxplot_final_SC_NO3_PO4_SO4_K.jpg',
+        width = 12.5, height = 16, dpi = 300)
+ 
+ 
+
+#extra boxplot fig
+ggarrange(no3_boxplot,po4_boxplot,k_boxplot, cl_boxplot, 
+          ncol=1, nrow=4)
+#ggsave('output/no3_po4_k_cl_boxplot_final.jpg',
+       width = 12.5, height = 15, dpi = 300)
+
+
+#Larger plot
+ggarrange(no3_boxplot,po4_boxplot,so4_boxplot,k_boxplot,na_boxplot,
+          sc_boxplot,mg_boxplot,ca_boxplot,f_boxplot,cl_boxplot,
+          ncol=1, nrow=10)
+#ggsave('output/nutrient_boxplot_final_ONEROW_SC_NO3_SO4_Mg_F_PO4_K_Na_Ca_Cl.jpg',
+       width = 30, height = 36, units= "in",dpi = 300)
+
+
+```
+
+## 2022 Boxplots all sites
+
+```{r}
+
+
+all_sites_data <- reservoir_chemistry%>%
+filter(site_code %in% mainstem_res_set)%>%
+  pivot_longer(cols = c(ChlA, Turbidity, TSS, pH,ANC, Na, NH4, K, Mg, Ca, F, Cl, PO4, SO4, SC,NO3),names_to = "param", values_to = "value")
+
+
+
+
+
+
+#boxplot function
+
+nutrient_boxplot_all_sites <- function(nutrient, year_choice, title = FALSE){
+  
+  param_label <- filter(meta_units_table, Parameters == nutrient)%>%
+    select(combined)%>%
+    pull()
+  
+         ## NO TITLE
+  if(title == FALSE){
+   
+  
+  no_title_graph <- all_sites_data%>%
+    filter(param == nutrient & Year ==  year_choice)%>%
+  ggplot() +
+  geom_boxplot(aes(x=reorder(site_code,order,max),y=value, middle=mean(value), fill=Watershed_Level)) +
+  scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+                        guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=24)+
+  theme(legend.position = "none",
+  strip.background = element_blank(),
+  strip.text.x = element_blank())+
+  labs(x = "", y = param_label)
+  return(no_title_graph)
+  }
+         ##  TITLE
+  if(title == TRUE){
+   
+  
+ title_graph <- all_sites_data%>%
+    filter(param == nutrient & Year ==  year_choice)%>%
+  ggplot() +
+  geom_boxplot(aes(x=reorder(site_code,order,max),y=value, middle=mean(value), fill=Watershed_Level)) +
+  scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", 
+                        guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=24)+
+   ggtitle(paste0(year_choice, " Data"))+
+  theme(legend.position = "none",
+        plot.title = element_text(family = '', face = 'bold', colour = 'black', size = 30, hjust = .5, vjust = .5))+
+  labs(x = "", y = param_label)
+ return(title_graph)
+  }
+  
+}
+
+
+## Using the function nutrient_boxplot_all_sites, create boxplots for following nutrients using year 2022 data: NO3, PO4, SO4, K, NH4, NA, SC, Mg, Ca, F, Cl
+no3_2022_boxplot <- nutrient_boxplot_all_sites('NO3', '2022', title = TRUE)
+po4_2022_boxplot <- nutrient_boxplot_all_sites('PO4', '2022')
+so4_2022_boxplot <- nutrient_boxplot_all_sites('SO4', '2022')
+k_2022_boxplot <- nutrient_boxplot_all_sites('K', '2022')
+nh4_2022_boxplot <- nutrient_boxplot_all_sites('NH4', '2022')
+na_2022_boxplot <- nutrient_boxplot_all_sites('Na', '2022')
+sc_2022_boxplot <- nutrient_boxplot_all_sites('SC', '2022')
+mg_2022_boxplot <- nutrient_boxplot_all_sites('Mg', '2022')
+ca_2022_boxplot <- nutrient_boxplot_all_sites('Ca', '2022')
+f_2022_boxplot <- nutrient_boxplot_all_sites('F', '2022')
+cl_2022_boxplot <- nutrient_boxplot_all_sites('Cl', '2022')
+
+
+
+ggarrange(no3_2022_boxplot,po4_2022_boxplot,so4_2022_boxplot,
+          k_2022_boxplot,nh4_2022_boxplot,na_2022_boxplot,
+          sc_2022_boxplot,mg_2022_boxplot,ca_2022_boxplot,
+          f_2022_boxplot,cl_2022_boxplot,
+          ncol=1, nrow=11)
+#ggsave('output/nutrient_boxplot_2022_ONEROW_NO3_PO4_SO4_K_NH4_Na_SC_Mg_CA_F_Cl.jpg', width = 30, height = 36)
+
+
+```
+
+## 2021 Boxplots all sites
+
+```{r}
+
+## Using the function nutrient_boxplot_all_sites, create boxplots for following nutrients using year 2022 data: NO3, PO4, SO4, K, NH4, NA, SC, Mg, Ca, F, Cl
+no3_2021_boxplot <- nutrient_boxplot_all_sites('NO3', '2021', title = TRUE)
+po4_2021_boxplot <- nutrient_boxplot_all_sites('PO4', '2021')
+so4_2021_boxplot <- nutrient_boxplot_all_sites('SO4', '2021')
+k_2021_boxplot <- nutrient_boxplot_all_sites('K', '2021')
+nh4_2021_boxplot <- nutrient_boxplot_all_sites('NH4', '2021')
+na_2021_boxplot <- nutrient_boxplot_all_sites('Na', '2021')
+sc_2021_boxplot <- nutrient_boxplot_all_sites('SC', '2021')
+mg_2021_boxplot <- nutrient_boxplot_all_sites('Mg', '2021')
+ca_2021_boxplot <- nutrient_boxplot_all_sites('Ca', '2021')
+f_2021_boxplot <- nutrient_boxplot_all_sites('F', '2021')
+cl_2021_boxplot <- nutrient_boxplot_all_sites('Cl', '2021')
+
+
+plot(no3_2021_boxplot)
+
+#arrange
+ggarrange(no3_2021_boxplot,po4_2021_boxplot,so4_2021_boxplot,k_2021_boxplot,
+          nh4_2021_boxplot,na_2021_boxplot,sc_2021_boxplot,mg_2021_boxplot,
+          ca_2021_boxplot,f_2021_boxplot,cl_2021_boxplot,
+          ncol=1, nrow=11)
+#ggsave('output/nutrient_boxplot_2021_ONEROW_NO3_PO4_SO4_Mg_F_PO4_NH4_K_Na_Ca_Cl.jpg', width = 30, height = 36)
+```
+
+### 2021 vs 2022 comparison timelines Chambers Complex
+
+```{r}
+
+
+cbri_data <- filter(reservoir_chemistry, site_code %in% c( "CBRI")& Year >2020)%>%
+  mutate(watershed = "Joe Wright Reservoir",
+         location = "Outflow", 
+         site_code = "JOEO")
+
+comparison_plots_df <- filter(reservoir_chemistry, site_code %in% mainstem_res_set & Year >2020)%>%
+  bind_rows(cbri_data)%>%
+  filter( Date > "2021-05-30")%>%
+  mutate(location = factor(location, levels = c("Inflow","Reservoir", "Outflow", "Stream", "Mainstem")), 
+         watershed  = factor(watershed, levels = c("Long Draw Reservoir", 
+                             "Joe Wright Reservoir", 
+                             "Chambers Reservoir", 
+                             "Peterson Reservoir", 
+                             "Barnes Meadow Reservoir")))%>%
+  pivot_longer(cols = c(ChlA, Turbidity, TSS, pH,ANC, Na, NH4, K, Mg, Ca, F, Cl, PO4, SO4, SC,NO3, DOC, DTN),names_to = "param", values_to = "value")
+
+plot_comparison_timeline <- function(nutrient){
+
+  param_label <- filter(meta_units_table, Parameters == nutrient)%>%
+    select(combined)%>%
+    pull()
+  
+  compare_df <- filter(comparison_plots_df, param == nutrient)%>%
+    filter(!is.na(value))
+  
+comparison_plot <-  ggplot(compare_df)+
+  geom_point(aes(x=Date, y = value, color=watershed, shape=watershed), size = 2.5)+
+  geom_path(aes(x=Date, y = value, group=site_code, color = watershed), size = 1 )+
+  #scale_fill_manual(values = colorsBS )+
+  scale_color_manual(values = colorsBS)+
+facet_wrap(~location + Year, scales = "free_x", ncol = 2, nrow = 3)+
+theme_bw(base_size = 15)+
+  theme(#legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold")) +
+ylab(param_label)
+
+return(comparison_plot)
+}
+
+nutrient_list<- select(meta_units_table, Parameters)%>%
+    pull()
+
+
+comparison_plots_list<- map(nutrient_list, plot_comparison_timeline)
+
+for(i in 1:length(comparison_plots_list)){
+  nutrient_list
+  plot(comparison_plots_list[[i]])
+  
+}
+
+
+```
+
+# Trends across location
+
+Are there any trends across location with respect to chla /nutrients?
+
+-   NO3
+
+-   Chl-A
+
+-   PO4
+
+-   SO4
+
+-   K
+
+#### DFs
+
+```{r}
+Reservoir_systems_Chemistry <- filter(reservoir_chemistry,
+                                      site_code %in% All_res_system 
+                                      & Year >= "2021" 
+                                      & !is.na(ChlA))%>%
+  mutate(location = factor(location, levels = c("Inflow","Reservoir", "Outflow")))
+
+
+```
+
+### Chl-A + SC + NO3
+
+```{r}
+
+##Chl-A grouped
+In_Res_out_chla <- Reservoir_systems_Chemistry%>%
+  ggplot(aes(x=reorder(site_code,order,max),y=ChlA, group= site_code, fill = Watershed_Level))+
+  geom_boxplot(aes(x=reorder(site_code,order,max),y=ChlA, middle=mean(ChlA), fill= Watershed_Level))+
+  geom_dotplot(stackgroups = FALSE, binaxis = "y", method = "histodot",stackdir = "center", position = "dodge", binwidth = .1, dotsize = 2)+
+  scale_fill_gradient2(name="Watershed Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  geom_abline(aes(slope=0, intercept=2.6), color='black', linetype="dashed") +
+  geom_abline(aes(slope=0, intercept=8), color='black', linetype="dashed") +
+  theme_bw(base_size = 10)+
+   theme(legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold"),
+         strip.text.x = element_text(size = 12)) +
+  coord_cartesian(ylim=c(0,12))+
+  labs(x ="Site", y="Chl-A (mg/L)")+
+  facet_wrap(~location, scales= "free_x") 
+
+#plot(In_Res_out_chla)
+
+
+#ggsave("output/CHLA_Grouped_Sites.jpg", width = 16, height = 9 )
+
+
+
+##NO3
+
+
+In_Res_out_NO3_Grouped <- Reservoir_systems_Chemistry%>%
+  ggplot()+
+  geom_boxplot(aes(x=reorder(location,order,max),y=NO3, middle=mean(NO3), fill= location))+
+  geom_dotplot(aes(x=reorder(location,order,max),y= NO3, fill= location), stackgroups = FALSE, binaxis = "y", method = "histodot",stackdir = "center", position = "dodge", binwidth = .04, dotsize = 1, alpha =.8)+
+  scale_fill_manual(values = c("#56B4E9", "#F0E442", "#D55E00"))+
+    theme_bw()+ 
+   theme(legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold")) +
+  labs( x = "", y = "NO3 (mg/L)")
+  
+
+#plot(In_Res_out_NO3_Grouped)
+
+
+#K
+In_Res_out_K_Grouped <- Reservoir_systems_Chemistry%>%
+  ggplot()+
+  geom_boxplot(aes(x=reorder(location,order,max),y=K, middle=mean(K), fill= location))+
+  geom_dotplot(aes(x=reorder(location,order,max),y= K, fill= location), stackgroups = FALSE, binaxis = "y", method = "histodot",stackdir = "center", position = "dodge", binwidth = .1, dotsize = .25)+
+  scale_fill_manual(values = c("#56B4E9", "#F0E442", "#D55E00"))+
+    theme_bw()+ 
+   theme(legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold")) +
+  labs( x = "", y = "K (mg/L)")
+
+#plot(In_Res_out_K_Grouped)
+
+#SO4
+In_Res_out_SO4_Grouped <- Reservoir_systems_Chemistry%>%
+  ggplot()+
+  geom_boxplot(aes(x=reorder(location,order,max),y=SO4, middle=mean(SO4), fill= location))+
+  geom_dotplot(aes(x=reorder(location,order,max),y= SO4, fill= location), stackgroups = FALSE, binaxis = "y", method = "histodot",stackdir = "center", position = "dodge", binwidth = .2, dotsize = 2)+
+  scale_fill_manual(values = c("#56B4E9", "#F0E442", "#D55E00"))+
+    theme_bw()+ 
+   theme(legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold")) +
+  labs( x = "Site Type", y = "SO4 (mg/L)")
+
+#plot(In_Res_out_SO4_Grouped)
+
+# NH4
+In_Res_out_NH4_Grouped <- Reservoir_systems_Chemistry%>%
+  ggplot()+
+  geom_boxplot(aes(x=reorder(location,order,max),y=NH4, middle=mean(NH4), fill= location), alpha = 1)+
+  geom_dotplot(aes(x=reorder(location,order,max),y= NH4, fill= location), stackgroups = FALSE, binaxis = "y", method = "histodot",stackdir = "center", position = "dodge", binwidth = .005, dotsize = 2, alpha = .5)+
+  scale_fill_manual(values = c("#56B4E9", "#F0E442", "#D55E00"))+
+    theme_bw()+ 
+   theme(legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold")) +
+  labs( x = "Site Type", y = "NH4 (mg/L)") 
+
+#plot(In_Res_out_NH4_Grouped)
+
+
+## Chl-A grouped by location
+
+
+In_Res_out_chla_grouped <- Reservoir_systems_Chemistry%>%
+  ggplot()+
+  
+  geom_boxplot(aes(x=reorder(location,order,max),y= ChlA, middle=mean(ChlA), fill= location))+
+ # geom_violin(aes(x=reorder(location,order,max),y= ChlA, middle=mean(ChlA), fill= location),alpha = .5)+
+  geom_dotplot(aes(x=reorder(location,order,max),y= ChlA, fill= location), stackgroups = FALSE, binaxis = "y", method = "histodot",stackdir = "center", position = "dodge", binwidth = .1, dotsize = 2)+
+  
+  scale_fill_manual(values = c("#56B4E9", "#F0E442", "#D55E00"))+
+  geom_abline(aes(slope=0, intercept=2.6), color='black', linetype="dashed") +
+  geom_abline(aes(slope=0, intercept=8), color='black', linetype="dashed") +
+  theme_bw()+ 
+  theme(legend.position = "none", 
+         axis.text=element_text(size=12),
+         axis.title=element_text(size=14,face="bold")) +
+  labs( x = "", y = "Chlorophyll a (μg/L)")+
+  coord_cartesian(ylim=c(0,12))
+  #facet_wrap(~Variable, scales= "free",nrow = 2, ncol = 6) 
+
+plot(In_Res_out_chla_grouped)
+
+#ggsave("output/location_Grouped_Chla_Boxplot.jpg", width = 11, height = 9)
+
+# Plotting SO4, NO3, CHLA, K together
+
+#ggarrange(In_Res_out_chla_grouped,In_Res_out_NO3_Grouped,In_Res_out_K_Grouped,In_Res_out_SO4_Grouped, In_Res_out_NH4_Grouped, ncol= 1, nrow = 5)---
+
+```
+
+## NO3/K ratio
+
+```{r}
+
+
+res_chem_k_no3 <- filter(reservoir_chemistry, site_code %in% mainstem_res_set & Year >2020)%>%
+  filter(location == "Reservoir")%>%
+  mutate(k_no3 = K/NO3,
+         no3_k = NO3/K,
+         site_year = paste(site_code, Year, sep = " "),
+         Month =month.abb[month(Date)] ,
+         day_of_year = yday(Date))
+
+res_chem_k_no3$Month <- factor(res_chem_k_no3$Month, levels = c("Jun","Jul","Aug","Sep","Oct"))
+#DdD
+
+
+
+
+#ggarrange(no3_k, k_no3, ncol = 1, nrow = 2)
+
+no3_vs_k <- res_chem_k_no3%>%
+  ggplot()+
+  geom_point(aes(x= K, y= NO3, color= Watershed_Level, size = Month), alpha = .5)+
+  geom_smooth(aes(x= K, y= NO3), color = "black", method = "lm", se= F)+
+  scale_size_manual(values = c(1,4,7,10,13))+
+  scale_color_gradient2(name="Contributing Area Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=15) +
+  theme(legend.position = "none") +
+  labs( x = "K (mg/L)", y = "NO3 (mg/L) ")
+#ggsave("test_fig/K_vs_no3.jpg", width = 11, height = 9)
+
+
+
+
+k_vs_chla <- res_chem_k_no3%>%
+  ggplot()+
+  geom_point(aes(x= K, y= ChlA, color= Watershed_Level, size = Month), alpha = .5)+
+  geom_smooth(aes(x= K, y= ChlA), color = "black", method = "lm", se= F)+
+  scale_size_manual(values = c(1,4,7,10,13))+
+  scale_color_gradient2(name="Contributing Area Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=15) +
+ # theme(legend.position = "none") +
+  labs( x = "K (mg/L)", y = "Chlorophyll a (μg/L)")
+
+plot(k_vs_chla)
+#ggsave("test_fig/K_vs_chla.jpg", width = 11, height = 9)
+
+
+no3_vs_chla <- res_chem_k_no3%>%
+  ggplot()+
+  geom_point(aes(x= NO3, y= ChlA, color= Watershed_Level, size = Month), alpha = .5)+
+  geom_smooth(aes(x= NO3, y= ChlA), color = "black", method = "lm", se= F)+
+  scale_size_manual(values = c(1,4,7,10,13))+
+  scale_color_gradient2(name="Contributing Area Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=15) +
+ # theme(legend.position = "none") +
+  labs( x = "NO3", y = "Chlorophyll a (μg/L)")
+
+#plot(no3_vs_chla)
+
+
+#ggsave("test_fig/NO3_vs_chla.jpg", width = 11, height = 9)
+
+k_no3_vs_chla <- res_chem_k_no3%>%
+  ggplot()+
+  geom_point(aes(x= k_no3, y= ChlA, color= Watershed_Level))+
+  scale_color_gradient2(name="Contributing Area Burn Intensity",low="#56B4E9", mid="#F0E442", high="#D55E00", guide="colourbar", midpoint=0.225, limits=c(0,0.45576),) +
+  theme_bw(base_size=15) +
+  theme(legend.position = "none") +
+  labs( x = "K/NO3", y = "ChlA")
+#plot(k_no3_vs_chla)
+
+#ggsave("test_fig/k_no3_vs_chla.jpg", width = 11, height = 9)
+```
+
+## Means
+
+```{r}
+
+mean_nutrients <- reservoir_chemistry%>%
+  select(c(ChlA, Turbidity, TSS, pH,ANC, Na, NH4, K, Mg, Ca, F, Cl, PO4, SO4, SC,NO3, site_code, Year))%>%
+  na.omit()%>%
+  group_by(site_code, Year)%>%
+  summarise(mean_chla = mean(ChlA), 
+            mean_turb = mean(Turbidity),
+            mean_pH = mean(pH),
+            mean_na = mean(Na),
+            mean_nh4 = mean(NH4),
+            mean_k = mean(K),
+            mean_mg = mean(Mg),
+            mean_ca = mean(Ca),
+            mean_f = mean(F),
+            mean_cl = mean(Cl),
+            mean_po4 = mean(PO4),
+            mean_so4 = mean(SO4),
+            mean_sc = mean(SC),
+            mean_no3 = mean(NO3))
+
+write.csv(mean_nutrients, "data/mean_nutrients_2021_2022.csv")
+```
+
+## Conclusions!
+
+This is the end of the document.

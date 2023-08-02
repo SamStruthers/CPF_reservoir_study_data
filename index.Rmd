@@ -1,0 +1,128 @@
+---
+title: "ROSS lab Reservoir Study Data Sharing"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+library(tidyverse)
+library(downloadthis)
+source("package_loader.R")
+source("field_chemistry/00_colors_and_groups.R")
+
+```
+
+```{r}
+
+
+reservoir_chemistry <- read_feather("data/field_chemistry/cleaned/reservoir_chem_2021_2022_062023.feather")%>%
+  mutate(location = factor(location, levels = c("Inflow","Reservoir", "Outflow", "Stream", "Mainstem")))
+
+
+```
+
+# Data
+
+## Data Available
+
+The data available at this site is grab sample chemistry data collected and processed at the RMRS Biogeochemistry lab. The data available here has been QA/QC'd and should be treated as final data.
+
+## Download data
+
+Add Zenodo link here!!
+
+<!-- ::: {.callout-note appearance="minimal"} -->
+<!-- <i class="bi bi-download"></i> [Download CPF Reservoir Study Dataset (4/2021 - 6/2023) dataset](sharing_data/field_chemistry/cleaned/CPF_reservoir_chemistry_up_to_071023.csv){download="CPF_reservoir_chemistry_up_to_071023.csv"} -->
+<!-- ::: -->
+
+<!-- ::: {.callout-note appearance="minimal"} -->
+<!-- <i class="bi bi-download"></i> [Download mean nutrients dataset](sharing_data/field_chemistry/cleaned/mean_nutrients_2021_2022.csv){download="CPF_Res_mean_nutrient_data.csv"} -->
+<!-- ::: -->
+
+# Plots
+
+## Plot 1: Longitudinal view of Joe Wright Creek
+
+```{r}
+  
+ 
+chambers_longitudinal_plotter <- function(res_data = reservoir_chemistry, chosen_dates){
+  
+   #chambers dataframe
+  chambers_longitudinal <- res_data %>%
+    dplyr::filter(!is.na(ChlA)) %>%
+    dplyr::filter(site_code %in% c("JOEI", "JOER", "CBRR", "CBRI", "CHD")) %>%
+    dplyr::filter(Date %in% chosen_dates)%>%
+    mutate(Date=as.character(Date),
+           location_type = ifelse(location == "Outflow"|location =="Inflow", "Stream", "Reservoir"))
+  
+  ###PLOTING PART OF FUNCTION
+  
+  #chla graph
+  chambers_chla_long <- chambers_longitudinal%>%
+    ggplot(aes(x=Distance, y=ChlA, color=Date)) +
+    geom_point( aes(shape = location_type), size=8, alpha = .7) +
+    geom_line(aes(x=Xdistance), linewidth=2, alpha = .7) +
+    geom_point(aes(shape = location_type), size=8, alpha = .7) +
+    scale_color_manual(values = season_color_vals)+
+    scale_fill_manual(values = season_color_vals)+
+    theme_bw(base_size=30) +
+    labs(shape = "", color="") +
+    theme(axis.text.x = element_blank(), 
+          legend.text = element_text(size = 18)) +
+    xlab("") +
+    ylab("Chlorophyll a (μg/L)")
+  
+  #NO3 GRAPH
+  chambers_no3_long <- chambers_longitudinal%>%
+    ggplot(aes(x=Distance, y=NO3, color=Date)) +
+    geom_point( aes(shape = location_type), size=8, alpha = .7) +
+    geom_line(aes(x=Xdistance), linewidth=2, alpha = .7) +
+    geom_point(aes(shape = location_type), size=8, alpha = .7) +
+    scale_color_manual(values = season_color_vals)+
+    scale_fill_manual(values = season_color_vals) +
+    theme_bw(base_size=30) +
+    theme(legend.text = element_text(size =18))+
+    labs(shape = "", color="") +
+    scale_x_discrete(labels=c("1 - JOEI" = "Above Joe Wright", "2 - JOER" = "", "3 - CBRI" = "Above Chambers",
+                              "4 - CBRR" = "", "5 - CHD" = "Below Chambers")) +
+    xlab("Longitudinal Profile") +
+    ylab("NO3 (mg/L)")
+  
+  
+ chambers_plot <- ggarrange(chambers_chla_long,chambers_no3_long, ncol=1, nrow=2, common.legend=T)
+  
+return(chambers_plot)
+}
+  
+  choosen_dates_2023 <- as.Date(c("2023-06-15",
+                  "2023-06-09",
+                  "2023-05-24"))
+   choosen_dates_2022 <- as.Date(c(#"2022-06-01",
+            "2022-06-14",
+            #"2022-07-05",
+            "2022-07-26",
+            "2022-08-16",
+                #"2022-08-23", "2022-08-30","2022-09-06","2022-09-13", "2022-09-20",
+                  "2022-09-27",
+                  #"2022-10-04","2022-10-11",
+                  "2022-10-18"
+                  #"2022-10-25",#"2022-11-01" 
+            ))
+
+  chambers_long_2022 <- chambers_longitudinal_plotter(reservoir_chemistry, chosen_dates = choosen_dates_2022)
+  chambers_long_2022
+  chambers_long_2023 <- chambers_longitudinal_plotter(reservoir_chemistry, chosen_dates = choosen_dates_2023)
+  chambers_long_2023
+  
+  
+ 
+
+#ggsave('test_output/2022_2023_joer_cbrr_chla_no3_longitudinal.jpg', width=15.5, height=10, dpi = 300)
+
+```
+
+## Plot 2: Longitudinal view of Joe Wright Creek and the Mainstem CLP

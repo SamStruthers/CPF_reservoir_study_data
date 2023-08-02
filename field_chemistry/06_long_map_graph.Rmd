@@ -1,0 +1,431 @@
+---
+title: "Longitudinal mapping of Reservoir -> River Connection"
+author: "Sam Struthers"
+format: html
+editor: visual
+self-contained: true
+---
+
+# Goals
+
+This document is to work on longitudinal plots and animations related to nutrients from Reservoirs / mainstem. This work could be extended to plot continous data at the same sites or extend into the lower network of sensors.\
+
+### Importing
+
+Loading packages and creating lists of sites based on location/grouping
+
+```{r}
+source("package_loader.R")
+source("field_chemistry/00_colors_and_groups.R")
+
+
+reservoir_chemistry <- read_feather("data/field_chemistry/cleaned/reservoir_chem_2021_2022.feather")%>%
+  mutate(location = factor(location, levels = c("Inflow","Reservoir", "Outflow", "Stream", "Mainstem")))
+
+
+```
+
+### Get lines and points
+
+This gives you straight lines between points but keeps it in spatial form
+
+```{r}
+
+  up_and_down_sites <- tibble(site_code = ratio_sites_names_all)%>%
+  mutate(site_one= str_extract(site_code, "^[A-Z]+"),
+         site_two = str_extract(site_code, "[A-Z]+$"),
+         site_ratio = site_code) %>%
+  left_join(Sites, by = c("site_one" = "site_code")) %>%
+  dplyr::rename(lat1 = Lat, long1 = Long) %>%
+  left_join(Sites, by = c("site_two" = "site_code")) %>%
+  dplyr::rename(lat2 = Lat, long2 = Long) %>%
+  select(site_ratio, lat1, long1, lat2, long2)
+
+up_site_lines <- select(up_and_down_sites, site_ratio, Long = long1, Lat = lat1)%>%
+  st_as_sf(coords = c("Long", "Lat"), crs = 4326)
+down_site_lines <- select(up_and_down_sites, site_ratio, Long = long2, Lat = lat2)%>%
+  st_as_sf(coords = c("Long", "Lat"), crs = 4326)
+
+site_lines <-st_union(up_site_lines, down_site_lines)%>%
+  filter(site_ratio == site_ratio.1)%>%
+  st_cast(to = "LINESTRING")%>%
+  dplyr::select(site_code = site_ratio, geometry)
+
+
+site_points <- Sites%>%
+  dplyr::select(site_code, Lat, Long)%>%
+  filter(site_code %in% c(all_res_system, mainstem_sites, "BEAV"))%>%
+  st_as_sf(coords = c("Long", "Lat"), crs = 4326)
+```
+
+### Get lines as flowlines
+
+I manually drew the flowlines for plots on google earth to reduce overlap between sites that feed into the same. We should develop a workflow to combine NHD flowlines between points and make those the lines that ratio data lives on.
+
+```{r}
+
+# get flowlines
+clp  <- get_huc(id = '10190007', type = "huc08")
+clp_flowlines <- get_nhdplus(AOI = clp, 
+                             realization='flowline')
+
+
+ratio_flowlines<- st_read("data/spatial/ratio_flowlines_widest.kml")%>%
+  st_transform(crs = 4326)%>%
+  select(site_code = Name)%>%
+  st_cast("LINESTRING")
+
+mapview::mapviewOptions(fgb = FALSE)
+
+mapview::mapview(ratio_flowlines)+
+  mapview::mapview(site_points)
+
+```
+
+# JW and Chamber's longitudinal data
+
+## Functionalize plotting of means and SDs
+
+This function creates a plots for a longitudinal view of the Joe Wright and Chamber's Complex. It calculates the ratio between sites (not plotted yet), mean and +- standard deviation. This function should work for any nutrient other than PO4 due to zero's in dataset.
+
+Title vs non title is still work in progress
+
+```{r}
+
+
+plot_long_jw_ch <- function(param, year = 2021,  title = FALSE){
+
+
+  ratio_for_param <- filter(reservoir_chemistry, site_code %in% jw_chambers_complex & Year == year)%>%
+    dplyr::select(all_of(param), Date, site_code)%>%
+     pivot_wider(names_from = site_code, values_from = param)%>%
+    drop_na()%>%
+    mutate(JOEI_JOER = JOER/JOEI, 
+           JOER_CBRI = CBRI/JOER,
+           CBRI_CBRR = CBRR/CBRI,
+           CBRR_CHD = CHD/CBRR)
+  
+
+  
+# create a mean_2021 dataframe that has the mean of JOEI, JOER, CBRI, CBRR and CHD
+#pivot longer and name the columns "site" and "value"
+  lean_mean_machine <- ratio_for_param%>%
+    pivot_longer(cols = c("JOEI", "JOER", "CBRI", "CBRR", "CHD"),
+                 names_to = "site",
+                 values_to = "value")%>%
+    group_by(site)%>%
+    summarise(mean = mean(value), 
+              sd = sd(value))%>%
+    ungroup()%>%
+    mutate(site = factor(site, levels = c("JOEI", "JOER", "CBRI", "CBRR", "CHD")), 
+           mean_plus_sd = mean + sd, 
+           mean_minus_sd = mean - sd, 
+           type = "mean")
+  
+  no_ratios <- ratio_for_param%>%
+    pivot_longer(cols = c("JOEI", "JOER", "CBRI", "CBRR", "CHD"),
+                 names_to = "site",
+                 values_to = "value")%>%
+     mutate(site = factor(site, levels = c("JOEI", "JOER", "CBRI", "CBRR", "CHD")))
+
+ if(title == TRUE){
+ plot <- ggplot(lean_mean_machine, aes(x = site))+
+   geom_point(data = no_ratios, aes(y = value, color = site), alpha  = .6)+
+   geom_ribbon(aes(ymin = mean_minus_sd, ymax = mean_plus_sd, 
+                  group = type), alpha = 0.2)+
+   geom_point(aes(y = mean))+
+   geom_line(aes( y = mean, group = type))+
+   scale_color_manual(values = colorsBS_in_order)+
+   theme_few(base_size = 25) +
+   labs(x = "Site (Upstream to Downstream)", 
+        y = param)+
+   #add the year in the top left quadrant of the plot
+    #annotate("text", x = 1, y = 1.5, label = year, size = 10)+
+    theme(legend.position = "none")
+}
+  
+  if(title == FALSE){
+ plot <- ggplot(lean_mean_machine, aes(x = site))+
+   geom_point(data = no_ratios, aes(y = value, color = site), alpha  = .6)+
+   geom_ribbon(aes(ymin = mean_minus_sd, ymax = mean_plus_sd, 
+                  group = type), alpha = 0.2)+
+   geom_point(aes(y = mean))+
+   geom_line(aes( y = mean, group = type))+
+   scale_color_manual(values = colorsBS_in_order)+
+   theme_few(base_size = 25) +
+   labs(x = "Site (Upstream to Downstream)", 
+        y = param)+
+        
+        #remove x axis labels and title
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.title.x = element_blank())+
+    theme(legend.position = "none")
+}
+ return(plot)
+}
+```
+
+## Param long 2021 JW CH plots
+
+```{r}
+
+
+# Plot 2021 and 2022 no3 and chl-a data for hydrodays figures
+
+
+no3_2021 <- plot_long_jw_ch(param = "NO3", year = 2021, title = TRUE)+
+  #make plot y axis line up with other plots
+            ylim(-.25,2)
+
+no3_2022 <- plot_long_jw_ch(param = "NO3", year = 2022, title = TRUE)+
+  #make plot y axis line up with other plots
+  ylim(-.25,2)
+
+chla_2021 <- plot_long_jw_ch(param = "ChlA", year = 2021)+
+  #make plot y axis line up with other plots
+            ylim(-.25, 10)
+
+chla_2022 <- plot_long_jw_ch(param = "ChlA", year = 2022)+
+  #make plot y axis line up with other plots
+        ylim(-.25, 10)
+
+
+ggarrange(chla_2021, chla_2022, no3_2021, no3_2022, ncol = 2, nrow = 2)
+#ggsave("output/chla_no3_JW_CH_facet_mean_sd.jpg", width = 24, height = 16, dpi = 300)
+```
+
+# 2022 Ratio Map
+
+This section will create animations and plots that show not only the site data but also it's relationship with down/upstream sites. This can be built out with continous data in mind and could live on a shiny app for funders/public to track changes in the watershed.
+
+## Function to get ratios
+
+This section organizes the data by site and calculates ratios between upstream and downstream sites.
+
+```{r}
+
+
+
+get_ratios_2022 <- function(nutrient){
+
+  
+  nr <- filter(reservoir_chemistry, site_code %in% c(all_res_system, mainstem_sites, "BEAV") & Year == 2022)
+
+    dplyr::select(date = Date,
+         site_code,
+         all_of(nutrient))%>%
+  pivot_wider(names_from = site_code, values_from = nutrient)%>%
+    filter(date %nin% genomic_dates)
+  ## Remove rows were all columns other than Date are NA
+ nr_no_na_rows <- nr[rowSums(is.na(nr)) != (ncol(nr)-1), ]%>%
+   thicken(interval = "week", 
+           start_val = as.Date("2022-05-30"))
+# remove the date column and consolidate the rows by date_week
+  nr_concise <- nr_no_na_rows%>%
+    select(-date)%>%
+    pivot_longer(cols = c(-date_week), 
+                 names_to = "site",
+                 values_to = "value")%>%
+    drop_na()%>%
+  pivot_wider(names_from = site, values_from = value)
+  
+
+    
+  nr_final_df <- nr_concise%>%
+    mutate(JOEI_JOER  = (JOER/JOEI), 
+           JOER_CBRI = (CBRI/JOER), 
+           CBRI_CBRR = (CBRR/CBRI), 
+           CBRR_CHD = (CHD/CBRR), 
+           CHD_JWC = (JWC/CHD), 
+           BRNR_BMD = (BMD/BRNR), 
+           BMD_JWC = (JWC/BMD), 
+           PTRR_PTRO = (PTRO/PTRR), 
+           PTRO_PJW = (PJW/PTRO), 
+           LNGR_LNGO = (LNGO/LNGR), 
+           LNGO_PJW = (PJW/LNGO), 
+           JWC_SLEP = (SLEP/JWC),
+           PJW_SLEP = (SLEP/PJW), 
+           SLEP_PBR = (PBR/SLEP), 
+           PBR_PSF = (PSF/PBR), 
+           COMI_COMR = (COMR/COMI), 
+           COMR_COMO = (COMO/COMR), 
+           COMO_BEAV =  (BEAV/COMO) , 
+           HORI_HORR = (HORR/HORI), 
+           HORR_HORO = (HORO/HORR), 
+           HORO_BEAV = (BEAV/HORO), 
+           BEAV_SFM = (SFM/BEAV), 
+           SFM_PSF = (PSF/SFM), 
+           PSF_PNF = (PNF/PSF), 
+           PNF_PBD = (PBD/PNF)
+           )%>%
+    pivot_longer(., cols = -date_week, names_to = "site_code", values_to = nutrient)
+  
+ return(nr_final_df)
+   
+}
+
+```
+
+## Join ratio and spatial
+
+Functions make the point and ratio data spatial to be used for mapping
+
+```{r}
+
+
+
+make_line_ratio_spatial_flowlines <- function(nr_final_df, nutrient){
+  
+  nutrient_ratios_lines <- nr_final_df %>%
+  inner_join(ratio_flowlines, by = "site_code")%>%
+  st_sf()%>%
+  dplyr::rename(ratio = nutrient )
+
+
+return(nutrient_ratios_lines)
+  
+}
+
+make_point_ratio_spatial <- function(nr_final_df){
+  
+  nutrient_ratios_points <- nr_final_df %>%
+  inner_join(site_points, by = "site_code")%>%
+  st_sf()
+
+
+return(nutrient_ratios_points)
+  
+}
+
+```
+
+## Plotting/ animation functions
+
+### Create Datasets for plotting
+
+Uses the following functions: - get_ratios_2022: acquire data in correct format for specific nutrient - make_point_ratio_spatial: Create point dataset for nutrient - make_line_ratio_spatial_flowlines: Create line dataset for specific nutrient
+
+```{r}
+
+chla_nr_df <- get_ratios_2022(nutrient = "ChlA")
+
+nutrient_ratios_lines <- make_line_ratio_spatial_flowlines(nr_final_df = chla_nr_df, nutrient = "ChlA")%>%
+# if percent_change is greater than 10, set to 10
+  mutate(ratio = ifelse(ratio > 10, 10, ratio), 
+         date = as.Date(date_week))
+
+
+nutrient_ratios_points <- make_point_ratio_spatial(chla_nr_df)%>%
+  mutate(date = as.Date(date_week))
+
+```
+
+This will create a plot for specific date_weeks in the data or animations for an entire year.
+
+## Animation attempts
+
+### Tmap
+
+I could get the animation to work without a basemap. I could get the basemap and one date_week in view mode but no animation. AGH
+
+```{r}
+
+ #tm_shape(filter(nutrient_ratios_points, date_week == "2022-08-08"& site_code %in% c(mainstem_res_set, "JWC", "PJW", "SLEP")), name = "Sampling Locations")+
+ select_upper_plot <- tm_shape(filter(nutrient_ratios_lines, site_code %in% ratio_sites_names_upper_select & date_week == "2022-06-06"), name = "Flow Lines")+
+  tm_lines(col = "ratio", palette = "Greens", n = 5, contrast = c(0.5, 0.9),
+           breaks = c(0, .5, 1, 2, 5, 10),
+           lwd = 2.5)+
+   # tm_facets(as.layers = TRUE, free.coords = FALSE, free.scales.symbol.size = FALSE,
+   #          nrow = 1, ncol = 1 )+
+   tm_shape(filter(nutrient_ratios_points, site_code %in% sites_names_upper_select & date_week == "2022-06-06"), name = "Sampling Locations")+
+  tm_bubbles(size = "ChlA", breaks = c(0, .5, 1, 2, 5, 10, 20))
+    # tm_facets(as.layers = TRUE, free.coords = FALSE, free.scales.symbol.size = FALSE,
+    #         nrow = 1, ncol = 1)+
+  # add title in top left corner which is date_week
+
+
+ #+tm_facets(along = "date_week", free.coords = FALSE, free.scales.symbol.size = FALSE,
+            #nrow = 1, ncol = 1)
+ select_upper_plot
+
+tmap_leaflet( select_upper_plot , mode = "view")%>%
+  addProviderTiles("Esri.WorldTopoMap") 
+
+
+tmap_animation(tester, filename = "output/spatial/chla_tester_upper.gif", width = 1400, height = 800, delay = 15)
+tmap_animation(tester_lines, filename = "output/spatial/chla_tester_lines.gif", width = 1200, height = 600, delay = 15)
+
+
+
+```
+
+## ggmap and gganimate
+
+Need to improve AOI location, basemap appearance and colors for data display.
+
+```{r}
+
+library(ggmap)
+library(gganimate)
+
+# need to make bounding box better
+AOI_1 <- get_map(location = c(lon = 	-105.8364 , lat = 40.60038 ), zoom = 12,  maptype = "hybrid")
+
+# essentially date_week - 1
+frames <- length(unique(filter(nutrient_ratios_lines, site_code %in% ratio_sites_names_upper_select)$date_week))-1
+
+select_upper <- ggmap(AOI_1)+
+  coord_sf(crs = st_crs(3857))+
+  geom_sf(data = filter(nutrient_ratios_lines, site_code %in% ratio_sites_names_upper_select), aes(color = ratio, group = date_week), size = 1.5, inherit.aes = FALSE)+
+  # set the color palette to be "Greens" and have breaks at 0, 0.5, 1, 2, 5, 10, 20
+  scale_color_gradientn(colours = c("white", "red"), breaks = c(0, .5, 1, 2, 5, 10, 20))+
+   geom_sf(data = filter(nutrient_ratios_points, site_code %in% sites_names_upper_select), aes(size = ChlA, group = date_week), alpha = .5, inherit.aes = FALSE)+
+  coord_sf(crs = st_crs(4326))+
+  transition_manual(date_week)+
+ ggtitle('Year: {frame_time}',
+           subtitle = 'Frame {frame} of {nframes}') +
+  shadow_mark()
+  
+
+animation <- animate(select_upper, nframes = frames, fps = 2 )
+
+
+```
+
+# Functionalize these later!
+
+```{r}
+
+# This will plot one week of discrete data with ratios between sites
+# using workflow designed in "Create Datasets for plotting" chunk
+discrete_one_week_plot <- function(week, point_df, line_df, nutrient){
+  return(map_plot)
+}
+
+# This will plot season's worth of discrete data with ratios between sites
+# using workflow designed in "Create Datasets for plotting" chunk
+discrete_season_animation<- function(point_df, line_df, nutrient){
+  return(map_animation)
+}
+
+
+# This will plot one timestep of continuous data with ratios between sites
+# using workflow similar to "Create Datasets for plotting" chunk but for continuous data
+continous_timestep_plot <- function(timestep, cont_point_df, cont_line_df, nutrient){
+  return(map_plot)
+}
+# This will plot one week of continuous data with ratios between sites
+# using workflow similar to "Create Datasets for plotting" chunk but for continuous data
+continous_one_week_animation <- function(week, cont_point_df, cont_line_df, nutrient){
+  return(map_plot)
+}
+
+# This will plot a season's worth of continuous data with ratios between sites
+# using workflow similar to "Create Datasets for plotting" chunk but for continuous data
+continous_season_animation<- function(year, cont_point_df, cont_line_df, nutrient){
+  return(map_animation)
+}
+
+
+```
