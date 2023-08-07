@@ -47,3 +47,10 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+#field chem plots folder
+field_chemistry/
+
+#index files
+index_files/
+
