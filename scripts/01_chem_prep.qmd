@@ -1,0 +1,64 @@
+---
+title: "chemistry prep"
+format: html
+  self-contained: true
+code-fold: true
+warning: false
+editor: visual
+---
+
+# Cameron Peak Fire Reservoir Water Analysis
+
+This will be the primary document for cleaning data
+
+#### Set Up
+
+```{r setup}
+source("scripts/package_loader.R")
+source("scripts/00_colors_and_groups.R")
+
+```
+
+### [**Goals:**]{.underline}
+
+#### This Document will:
+
+-   Clean reservoir data from RMRS and make it usable for our analysis and to publish for funders
+
+This looks like:
+
+-   Making dates compatible
+
+-   Adding location characteristics
+
+
+
+```{r merging}
+reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
+  mutate(Date = as.Date(parse_date_time(Date, 
+                                  orders = c('%m/%d/%y',
+                                             '%d-%b-%y'))))%>%
+  filter(SampleType == "NORM") %>%
+  mutate (FCW_Number = as.numeric(gsub('FCW ', '', IDNo)), 
+          Year =  year(Date), 
+          site_code = SiteLabel)%>%
+  select(-c(SiteLabel, IDNo, SiteDescr, SampleType))%>%
+  left_join(select(Sites,c(site_code,Lat,Long, location, Campaign, watershed, status)),by="site_code") %>%
+   left_join(select(buffer_sbs,c(watershed,Buffer_Level)),by="watershed") %>%
+  left_join(select(watershed_sbs,c(site_code,Watershed_Level)),by="site_code")%>%
+  left_join(select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code")
+```
+
+
+```{r saving}
+# write a feather file named reservoir_chem_2021_2022.feather
+write_feather(reservoir_chemistry, "data/cleaned/reservoir_chem_2021_2022_062023.feather")
+
+
+  
+write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv" )
+
+
+```
+
+
