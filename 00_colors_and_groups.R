@@ -6,15 +6,15 @@
 ## Importing data
 
 #buffer_sbs:Indices based on burn severity directly around the reservoir
-buffer_sbs <- read_csv('data/field_chemistry/metadata/sbs_buffer.csv') %>%
+buffer_sbs <- read_csv('data/metadata/sbs_buffer.csv') %>%
   mutate(Buffer_Level=((Unburned*0)+(V_Low*0.1)+(Low*0.4)+(Moderate*0.7)+(High*1))/(Unburned+V_Low+Low+Moderate+High))
 # watershed_sbs: within each reservoirs watershed.
-watershed_sbs <- read_csv('data/field_chemistry/metadata/sbs_watershed.csv') %>%
+watershed_sbs <- read_csv('data/metadata/sbs_watershed.csv') %>%
   mutate(Watershed_Level=((Unburned*0)+(V_Low*0.1)+(Low*0.4)+(Moderate*0.7)+(High*1))/(Unburned+V_Low+Low+Moderate+High))
 # Sites: Locations of each site, includes grouping and type of body of water
-Sites <- read.csv('data/field_chemistry/metadata/cpf_sites.csv')
+Sites <- read.csv('data/metadata/cpf_sites.csv')
 #dist_from_pbd: distance from PBD (mouth of canyon) using NHD flowline
-dist_from_pbd <- read.csv('data/field_chemistry/metadata/distance_from_pbd.csv')
+dist_from_pbd <- read.csv('data/metadata/distance_from_pbd.csv')
 #Dates for genomic survey
 genomic_dates <- as.Date(c("2022-06-22", "2022-08-25", "2022-09-19"))
 

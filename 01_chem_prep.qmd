@@ -15,7 +15,7 @@ This will be the primary document for cleaning data
 
 ```{r}
 source("package_loader.R")
-source("field_chemistry/00_colors_and_groups.R")
+source("00_colors_and_groups.R")
 
 ```
 
@@ -46,7 +46,7 @@ This looks like:
 ```{r}
 
 
-reservoir_chemistry <- read_csv('data/field_chemistry/raw/ReservoirChemistry_073123.csv')%>%
+reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
   mutate(Date = as.Date(parse_date_time(Date, 
                                   orders = c('%m/%d/%y',
                                              '%d-%b-%y'))))%>%
@@ -59,11 +59,6 @@ reservoir_chemistry <- read_csv('data/field_chemistry/raw/ReservoirChemistry_073
    left_join(select(buffer_sbs,c(watershed,Buffer_Level)),by="watershed") %>%
   left_join(select(watershed_sbs,c(site_code,Watershed_Level)),by="site_code")%>%
   left_join(select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code") %>%
-   mutate(season=case_when(between(Date, as.Date("2022-01-01"), as.Date("2022-06-09")) ~ "SPRING", 
-                           between(Date, as.Date("2021-01-01"), as.Date("2021-06-09")) ~ "SPRING",
-                           between(Date, as.Date("2022-06-10"), as.Date("2022-09-24")) ~ "SUMMER", 
-                           between(Date, as.Date("2021-06-10"), as.Date("2021-09-24")) ~ "SUMMER",
-                          .default =  "FALL")) %>%
   mutate(Distance = case_when(site_code == 'JOEI' ~ '1 - JOEI',
                               site_code == 'JOER' ~ '2 - JOER',
                               site_code == 'CBRI' ~ '3 - CBRI',
