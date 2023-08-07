@@ -14,6 +14,7 @@ This will be the primary document for cleaning data
 #### Set Up
 
 ```{r setup}
+#load packages and set up colors for plotting
 source("scripts/package_loader.R")
 source("scripts/00_colors_and_groups.R")
 
@@ -31,34 +32,40 @@ This looks like:
 
 -   Adding location characteristics
 
-
-
 ```{r merging}
+#read most recent file
 reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
+  #clean up dates
   mutate(Date = as.Date(parse_date_time(Date, 
                                   orders = c('%m/%d/%y',
                                              '%d-%b-%y'))))%>%
+  #Remove duplicate and blank samples that were used by RMRS for QA
   filter(SampleType == "NORM") %>%
+  # Get sample era number
   mutate (FCW_Number = as.numeric(gsub('FCW ', '', IDNo)), 
+          #get year
           Year =  year(Date), 
-          site_code = SiteLabel)%>%
+          #rename sitelabel to site_code
+          site_code = SiteLabel, 
+          #add data source column for data collected by ROSS (2021-2023) and Rhoades (2014-2023)
+          data_source = case_when(Year >= 2021 ~ "ROSS",TRUE ~ "RHOADES"))%>%
+  # Remove unnecessary columns
   select(-c(SiteLabel, IDNo, SiteDescr, SampleType))%>%
+   #add location metadata created by Sam Struthers
   left_join(select(Sites,c(site_code,Lat,Long, location, Campaign, watershed, status)),by="site_code") %>%
+   #add buffer burn severity data created by Katie Willi
    left_join(select(buffer_sbs,c(watershed,Buffer_Level)),by="watershed") %>%
+  #add watershed burn severity data created by Katie Willi
   left_join(select(watershed_sbs,c(site_code,Watershed_Level)),by="site_code")%>%
+  # Add distance upstream of pbd site
   left_join(select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code")
 ```
 
-
 ```{r saving}
-# write a feather file named reservoir_chem_2021_2022.feather
-write_feather(reservoir_chemistry, "data/cleaned/reservoir_chem_2021_2022_062023.feather")
-
-
-  
+# write a feather file named reservoir_chem_2021_2022_071023.feather
+write_feather(reservoir_chemistry, "data/cleaned/reservoir_chem_2021_2022_071023.feather")
+# write a feather file named reservoir_chem_2021_2022_071023.feather
 write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv" )
 
 
 ```
-
-
