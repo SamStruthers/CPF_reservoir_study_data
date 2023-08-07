@@ -10,8 +10,7 @@ Authors: Samuel Struthers (<https://orcid.org/0000-0003-1263-9525>), Matthew R.V
 
 Samples were collected and processed using the Rocky Mountain Research Station's Biogeochemistry Lab, overseen by Timothy Fegel and Charles Rhoades, according to the following methods:
 
-\
-![List of parameters sampled and analytical methods used during the course of this study (adapted from the USFS Rocky Mountain Research Station's 2020 Quality Assurance Procedure Plan](images/rmrs_procedures.png){width="605"}
+![List of parameters sampled and analytical methods used during the course of this study (adapted from the USFS Rocky Mountain Research Station's 2020 Quality Assurance Procedure Plan](images/rmrs_procedures.png)
 
 **Funding:** This project was funded by the City of Fort Collins Utilities, City of Greeley Utilities, City of Thornton Utilities and Northern Water.
 
