@@ -47,9 +47,9 @@ This looks like:
 
 
 reservoir_chemistry <- read_csv('data/field_chemistry/raw/ReservoirChemistry_073123.csv')%>%
-  mutate(Date = parse_date_time(Date, 
+  mutate(Date = as.Date(parse_date_time(Date, 
                                   orders = c('%m/%d/%y',
-                                             '%d-%b-%y')))%>%
+                                             '%d-%b-%y'))))%>%
   filter(SampleType == "NORM") %>%
   mutate (FCW_Number = as.numeric(gsub('FCW ', '', IDNo)), 
           Year =  year(Date), 
@@ -145,6 +145,10 @@ reservoir_chemistry <- read_csv('data/field_chemistry/raw/ReservoirChemistry_073
 
 # write a feather file named reservoir_chem_2021_2022.feather
 write_feather(reservoir_chemistry, "data/field_chemistry/cleaned/reservoir_chem_2021_2022_062023.feather")
+
+
+  
+write_csv_arrow(reservoir_chemistry,"data/field_chemistry/cleaned/CPF_reservoir_chemistry_up_to_071023.csv" )
 
 
 ```
