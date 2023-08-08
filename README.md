@@ -1,6 +1,6 @@
 # CPF Reservoir Study Data
 
-Authors: Samuel Struthers (<https://orcid.org/0000-0003-1263-9525>), Matthew R.V. Ross (<https://orcid.org/0000-0001-9105-4255>), Timothy S. Fegel, Kathryn Willi (<https://orcid.org/0000-0001-7163-2206>), Charles C. Rhoades (<https://orcid.org/0000-0002-3336-2257>)
+Authors: Samuel J. Struthers (<https://orcid.org/0000-0003-1263-9525>),Timothy S. Fegel,  Kathryn R. Willi (<https://orcid.org/0000-0001-7163-2206>), Charles C. Rhoades (<https://orcid.org/0000-0002-3336-2257>), Matthew R.V. Ross (<https://orcid.org/0000-0001-9105-4255>)
 
 **Data Description:** These data are water chemistry grab sample data collected post-Cameron Peak Fire in the Cache La Poudre Watershed between the years of 2021 and 2023. These data are focused on basic water quality parameters, as well as cations and anions. Data were collected at various reservoirs in the Cache La Poudre watershed as well as the mainstem of the Cache La Poudre River. This project is ongoing and additional data will be released as it is analyzed.
 
