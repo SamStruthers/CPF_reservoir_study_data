@@ -2,6 +2,10 @@
 .Rhistory
 .Rapp.history
 
+# wonky VS code files
+**/.DS_Store
+.DS_Store
+
 # Session Data files
 .RData
 .RDataTmp
