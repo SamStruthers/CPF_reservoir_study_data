@@ -1,1 +1,1 @@
-This folder contains raw, uncollated data from the USFS. Please use the file `INSERT FILE NAME HERE OF THE COLLATED DATA THAT OTHERS SHOULD USE` for all downstream purposes.
+This folder contains raw, uncollated data from the USFS. Please use the file `ReservoirChemistry_073123.csv` for all downstream purposes.
