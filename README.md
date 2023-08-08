@@ -6,10 +6,9 @@ Authors: Samuel Struthers (<https://orcid.org/0000-0003-1263-9525>), Matthew R.V
 
 **Background Information:** The 2020 Cameron Peak wildfire (CPF) was the largest wildfire in Colorado history at over 200,000 acres. The CPF burned a large proportion of the Cache La Poudre watershed, in particular areas surrounding high elevation reservoirs. These reservoirs provide valuable drinking and agriculutural water to users in the City of Fort Collins, Greeley, Thornton and Northern Water. In collaboration with the Rocky Mountain Research Station (USFS, RMRS), we are sampling various reservoir, tributary, and mainstem sites of the Cache La Poudre watershed. This field campaign allows us to analyze trends in water quality focusing on nutrients and other key constituents mobilized post-fire. The goal of this project is to understand how these nutrients affect algal growth in reservoirs and how those changes are felt downstream. The reservoirs studied are the following: Barnes Meadow Reservoir, Chambers Lake, Comanche Reservoir, Hourglass Reservoir, Joe Wright Reservoir, Long Draw Reservoir, and Peterson Lake. Historical data (prior to 2021) was collected by the Rhoades Lab at the USFS' Rocky Mountain Research Station.
 
+The primary data file is `data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv`. Column definitions and units are defined in the file `metadata/Units_Cam_Peak.csv`.
 
-The primary data file is "data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv". Column definitions and units are defined in the file `metadata/Units_Cam_Peak.csv`.
-
-Location metadata file is "data/metadata/cpf_sites.csv".
+Location metadata file is `data/metadata/cpf_sites.csv`. A basic map showing all sampling locations is available at `cpf_sites_map.html`.
 
 Code is housed in the `scripts` folder and contains the following files:
 
@@ -18,6 +17,8 @@ Code is housed in the `scripts` folder and contains the following files:
 -   01_chem_prep.qmd adds metadata to most recent .csv of water chemistry data supplied by RMRS lab.
 
 -   distance_finder.R uses NHDflowlines to calculate distances from furthest downstream site, PBD.
+
+-   cpf_sites_map.R uses location metadata to create `cpf_sites_map.html`
 
 Data are housed in the `data` folder and it contains the following:
 
