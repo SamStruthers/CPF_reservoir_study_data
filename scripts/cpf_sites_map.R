@@ -2,6 +2,7 @@
 
 source("scripts/package_loader.R")
 source("scripts/00_colors_and_groups.R")
+#00 colors reads in location data from 'data/metadata/cpf_sites.csv' into object Sites
 
 cpf_sites <- Sites%>%
   #remove sites with no location data
