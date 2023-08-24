@@ -1,6 +1,6 @@
 Site_Name,site_code,Lat,Long,Campaign,location,Q source,DO,DO source,watershed,status,data_owner
 Poudre at Archery Range,ARCH,40.5479138,-105.0011275,Mainstem,Mainstem,?,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
-Beaver Creek,BEAV,40.579336,-105.5940998,South Fork,Stream,RMRS,no,,CLP Tributary,Partially Burned,ROSS
+Beaver Creek,BEAV,40.579336,-105.5940998,South Fork,Stream,RMRS,no,,CLP Tributary,Burned,ROSS
 Bennett Creek,BENN,40.65821647,-105.5409381,Tributary,Stream,RMRS,no,,CLP Tributary,Burned,RMRS
 Black Hollow Creek,BLAK,40.695486,-105.648333,Tributary,Stream,RMRS,no,,CLP Tributary,Burned,RMRS
 Barnes Meadow Outflow,BMD,40.600376,-105.836378,Chambers Complex,Outflow,Greeley/DWR,no,,Barnes Meadow Reservoir,Burned,ROSS
@@ -9,7 +9,7 @@ Boxelder 2,BOX2,,,Mainstem,Stream,?,no,,CLP  Mainstem-Fort Collins,Unburned,ROSS
 Boxelder 3,BOX3,,,Mainstem,Stream,?,no,,CLP  Mainstem-Fort Collins,Unburned,ROSS
 Boxelder 4,BOX4,,,Mainstem,Stream,?,no,,CLP  Mainstem-Fort Collins,Unburned,ROSS
 Barnes Meadow Reservoir,BRNR,40.599908,-105.830604,Chambers Complex,Reservoir,Greeley/DWR,no,,Barnes Meadow Reservoir,Burned,ROSS
-Poudre above Stove Prairie,CACT,40.68267877,-105.3901979,Tributary,Stream,RMRS,no,,CLP Mainstem-Canyon,Burned,RMRS
+Poudre above Stove Prairie,CACT,40.68267877,-105.3901979,Tributary,Stream,RMRS,no,,CLP Mainstem-Canyon,Partially Burned,RMRS
 Joe Wright Outflow/Chambers Inflow,CBRI,40.57795281,-105.8572773,Chambers Complex,Inflow,USGS,yes,RMRS,Chambers Reservoir,Burned,ROSS
 Chambers Reservoir,CBRR,40.603457,-105.845931,Chambers Complex,Reservoir,DWR,no,,Chambers Reservoir,Burned,ROSS
 Chambers Outflow,CHD,40.60233229,-105.8427286,Chambers Complex,Outflow,DWR,YES,RMRS,Chambers Reservoir,Burned,ROSS
