@@ -36,4 +36,4 @@ Samples were collected and processed using the Rocky Mountain Research Station's
 
 **Keywords**: Cameron Peak Fire, water quality, reservoirs, chlorophyll a, biogeochemistry
 
-**Version**: v2023.08.24
+**Version**: v2023.09.01
