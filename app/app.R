@@ -14,18 +14,18 @@ library(tidyverse)
 
 
 #### SAM
-setwd("/Users/samstruthers/Documents/fork_yeah/CPF_reservoir_study_data")
+#setwd("/Users/samstruthers/Documents/fork_yeah/CPF_reservoir_study_data/app")
 #chem_meta <- read_excel("data/metadata/Units_Cam_Peak.xlsx")
 #chem_vals <- chem_meta$Parameters
 
-res_chem <- readRDS("data/tidyResChem.RDS")
+res_chem <- readRDS("tidyResChem.RDS")
 
 chem_parameters  <- c("Turbidity","TSS", "ChlA", "DOC", "DTN", "pH", "ANC","SC",
                        "Na",  "NH4", "K", "Mg",  "Ca",  "F", "Cl", "NO3", "PO4","SO4")
 res_chem_long <- res_chem%>%
   pivot_longer(cols = all_of(chem_parameters), names_to = "Parameter")%>%
   filter(!is.na(value))
-sites <- readRDS("data/sites_table.RDS")
+sites <- readRDS("sites_table.RDS")
 #### V2
 
 
