@@ -1,4 +1,5 @@
-# CPF Reservoir Study Data
+# Cameron Peak Fire Reservoir Study Data 
+Current release: (2021- 07/2023)
 
 
 [![DOI](https://zenodo.org/badge/673979750.svg)](https://zenodo.org/badge/latestdoi/673979750)
