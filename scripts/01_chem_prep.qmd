@@ -85,7 +85,7 @@ sites_table <- reservoir_chemistry %>%
   dplyr::select(Site, Long, Lat, start_date, end_date)
 
 ## save as RDS ----------
-saveRDS(sites_table, file = "data/sites_table.RDS")
+saveRDS(sites_table, file = "app/sites_table.RDS")
 
 # adding data_available column to tidyResChem
 # Removing Historical RMRS Data
@@ -93,6 +93,6 @@ tidyResChem <- reservoir_chemistry %>%
   filter(Year>=2021)
 
 ## save as RDS -------
-saveRDS(tidyResChem, file = "data/tidyResChem.RDS")
+saveRDS(tidyResChem, file = "app/tidyResChem.RDS")
 
 ```
