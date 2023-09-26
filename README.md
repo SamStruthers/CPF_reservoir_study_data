@@ -1,5 +1,9 @@
 # CPF Reservoir Study Data
 
+
+[![DOI](https://zenodo.org/badge/673979750.svg)](https://zenodo.org/badge/latestdoi/673979750)
+
+
 Authors: Samuel J. Struthers (<https://orcid.org/0000-0003-1263-9525>),Timothy S. Fegel, Kathryn R. Willi (<https://orcid.org/0000-0001-7163-2206>), Charles C. Rhoades (<https://orcid.org/0000-0002-3336-2257>), Matthew R.V. Ross (<https://orcid.org/0000-0001-9105-4255>)
 
 **Data Description:** The majority of this dataset is water chemistry grab sample data collected post-Cameron Peak Fire in the Cache la Poudre Watershed between the years of 2021 and 2023. This dataset also includes historical data collected pre Cameron Peak Fire by the Rhoades lab at the US Forest Service Rocky Mountain Research Station. These data are focused on basic water quality parameters, as well as cations and anions. Data were collected at various reservoirs in the Cache la Poudre watershed as well as the mainstem of the Cache la Poudre River. This project is ongoing and additional data will be released as it is analyzed.
