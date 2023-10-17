@@ -1,5 +1,5 @@
 Site_Name,site_code,Lat,Long,Campaign,location,Q source,DO,DO source,watershed,status,data_owner
-Poudre at Archery Range,ARCH,40.5479138,-105.0011275,Mainstem,Mainstem,?,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
+Poudre at Archery Range,archery,40.5479138,-105.0011275,Mainstem,Mainstem,?,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
 Beaver Creek,BEAV,40.579336,-105.5940998,South Fork,Stream,RMRS,no,,CLP Tributary,Burned,ROSS
 Bennett Creek,BENN,40.65821647,-105.5409381,Tributary,Stream,RMRS,no,,CLP Tributary,Burned,RMRS
 Black Hollow Creek,BLAK,40.695486,-105.648333,Tributary,Stream,RMRS,no,,CLP Tributary,Burned,RMRS
@@ -27,7 +27,7 @@ Joe Wright Inflow,JOEI,40.54013102,-105.8831698,Chambers Complex,Inflow,USGS,yes
 Joe Wright Reservoir,JOER,40.55593744,-105.8749619,Chambers Complex,Reservoir,,no,,Joe Wright Reservoir,Partially Burned,ROSS
 Joe Wright Creek above the Poudre,JWC,40.61988,-105.81937,Mainstem,Mainstem,?,yes,RMRS,CLP Mainstem-Canyon,Partially Burned,ROSS
 Little Beaver Creek,LBEA,40.624819,-105.532595,Tributary,Stream,RMRS,no,,CLP Tributary,Burned,RMRS
-Poudre at Legacy Park,LEGC,40.6006194,-105.0860344,Mainstem,Mainstem,FC,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
+Poudre at Legacy Park,legacy,40.6006194,-105.0860344,Mainstem,Mainstem,FC,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
 Long Draw Outflow,LNGO,40.50368571,-105.7709459,Longdraw,Outflow,DNR,no,,Long Draw Reservoir,Unburned,ROSS
 Long Draw Reservoir,LNGR,40.50087627,-105.7725307,Longdraw,Reservoir,?,no,,Long Draw Reservoir,Unburned,ROSS
 Laramie River Tunnel,LRT,40.66791689,-105.8075443,Mainstem,Mainstem,DNR,no,,CLP Mainstem-Canyon,Partially Burned,RMRS
@@ -48,7 +48,7 @@ South Fork of the Poudre,SFM,40.61825,-105.525583,South Fork,Mainstem,Larimer Co
 Sheep Creek,SHEP,40.69487299,-105.6256411,Tributary,Stream,RMRS,no,,CLP Tributary,Burned,RMRS
 Sleeping Elephant,SLEP,40.682439,-105.771986,Mainstem,Mainstem,RMRS,no,,CLP Mainstem-Canyon,Partially Burned,ROSS
 South Lone Pine Creek,SOLP,40.78860289,-105.6011062,Tributary,Stream,RMRS,no,,CLP Tributary,Unburned,
-Timberline,TIMB,40.5754289,-105.0333903,Mainstem,Mainstem,?,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
+Timberline,timberline,40.5754289,-105.0333903,Mainstem,Mainstem,?,yes,ROSS,CLP  Mainstem-Fort Collins,Partially Burned,ROSS
 Long Draw Road Tributary 1,LDRT1,40.530046,-105.794982,Tributary,Stream,,no,,CLP Tributary,Burned,RMRS
 Poudre below Poudre Falls,PFAL,40.651785,-105.810831,Mainstem,Stream,Larimer County,no,,CLP Mainstem-Canyon,Partially Burned,ROSS
 ,,,,,,,,,,,
