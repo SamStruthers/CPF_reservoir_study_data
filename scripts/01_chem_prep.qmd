@@ -34,7 +34,7 @@ This looks like:
 
 ```{r merging}
 #read most recent file
-reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
+reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_20230925.csv')%>%
   #clean up dates
   mutate(Date = as.Date(parse_date_time(Date, 
                                   orders = c('%m/%d/%y',
@@ -65,7 +65,7 @@ reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
 # write a feather file named reservoir_chem_2021_2022_071023.feather
 #write_feather(reservoir_chemistry, "data/cleaned/reservoir_chem_2021_2022_071023.feather")
 # write a feather file named reservoir_chem_2021_2022_071023.feather
-write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv" )
+write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_20230907.csv" )
 
 
 ```
@@ -75,13 +75,15 @@ Prep data for Shiny App
 ```{r ShinyPrep}
 
 
-
+#Create table for shiny app
 sites_table <- reservoir_chemistry %>%
   group_by(Site) %>%
+  #only grab post fire data
   mutate(start_date = as.Date("2021-01-01"),
          end_date = max(Date)) %>% 
   ungroup()%>%
   distinct(Site, .keep_all = TRUE) %>%
+  # only select location and date data
   dplyr::select(Site, Long, Lat, start_date, end_date)
 
 ## save as RDS ----------
