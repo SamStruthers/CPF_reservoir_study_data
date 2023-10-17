@@ -52,6 +52,5 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Ignore shiny app
-app/
+
 

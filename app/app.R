@@ -13,10 +13,7 @@ library(readxl)
 library(tidyverse)
 
 
-#### SAM
-#setwd("/Users/samstruthers/Documents/fork_yeah/CPF_reservoir_study_data/app")
-#chem_meta <- read_excel("data/metadata/Units_Cam_Peak.xlsx")
-#chem_vals <- chem_meta$Parameters
+
 
 res_chem <- readRDS("tidyResChem.RDS")
 
@@ -26,42 +23,84 @@ res_chem_long <- res_chem%>%
   pivot_longer(cols = all_of(chem_parameters), names_to = "Parameter")%>%
   filter(!is.na(value))
 sites <- readRDS("sites_table.RDS")
-#### V2
 
 
-# Load your data (assuming you already have 'res_chem_long' and 'sites' loaded)
-
-# UI
+####----- UI------ ####
 ui <- fluidPage(
-  titlePanel("Time Series Plot"),
+  tags$head(
+    tags$style(
+      HTML("
+        .landing-page {
+          text-align: center;
+          padding: 20px;
+        }
+        .landing-title {
+          font-size: 24px;
+          font-weight: bold;
+          margin-top: 20px;
+        }
+        .project-overview {
+          font-size: 18px;
+          margin-top: 20px;
+        }
+      ")
+    )
+  ),
+  div(
+    class = "landing-page",
+    h1(
+      class = "landing-title",
+      "CPF ROSS Data"
+    ),
+    p(
+      class = "project-overview",
+      "Data Available: https://zenodo.org/record/8308733"
+    )
+  ),
   sidebarLayout(
     sidebarPanel(
-      selectInput("site", "Select Site(s):",
-                  choices = unique(res_chem_long$Site),
-                  multiple = TRUE),
-      selectInput("parameter", "Select a Parameter:",
-                  choices = unique(res_chem_long$Parameter)),
+      selectizeInput("site", "Select Site(s):",
+                     choices = unique(res_chem_long$Site),
+                     multiple = TRUE,
+                     options = list(
+                       placeholder = 'Choose sites...',
+                       optgroups = list(
+                         Watersheds = c('Site1', 'Site2'),
+                         AnotherWatershed = c('Site3', 'Site4')
+                       )
+                     )
+      ),
+      selectInput("parameter", "Select Parameter(s):",
+                  choices = unique(res_chem_long$Parameter),
+                  multiple = TRUE),  
       dateRangeInput("date_range", "Select Date Range:",
                      start = min(res_chem_long$Date),
                      end = max(res_chem_long$Date)),
-      downloadButton("downloadData", "Download Selected Data")
+      downloadButton("downloadData", "Download Highlighted Data")
     ),
     mainPanel(
-      plotOutput("time_series_plot")
+      tabsetPanel(
+        tabPanel("Individual Parameters", plotOutput("time_series_plot")),
+        tabPanel("Multiple Parameters", plotOutput("multiple_parameters_plot"))
+      )
     )
   )
 )
+
+##### ------SERVER----------####
+
 
 server <- function(input, output) {
   filtered_data <- reactive({
     start_date <- input$date_range[1]
     end_date <- input$date_range[2]
     selected_sites <- input$site
-    selected_parameter <- input$parameter
+    selected_parameters <- input$parameter  # Use input$parameter as a list
     
     res_chem_long %>%
       filter(Date >= start_date, Date <= end_date,
-             Site %in% selected_sites, Parameter == selected_parameter)
+             Site %in% selected_sites,
+             Parameter %in% selected_parameters)  # Filter by selected parameters
   })
   
   output$time_series_plot <- renderPlot({
@@ -76,14 +115,42 @@ server <- function(input, output) {
     print(gg)
   })
   
+  output$multiple_parameters_plot <- renderPlot({
+    start_date <- input$date_range[1]
+    end_date <- input$date_range[2]
+    selected_sites <- input$site
+    selected_parameters <- input$parameter  # Use input$parameter as a list
+    
+    data <- res_chem_long %>%
+      filter(Date >= start_date, Date <= end_date,
+             Site %in% selected_sites,
+             Parameter %in% selected_parameters)  # Filter by selected parameters
+    
+    gg <- ggplot(data, aes(x = Date, y = value, color = Site)) +
+      geom_line() +
+      geom_point() +
+      facet_wrap(~Parameter, scales = "free_y", ncol = 2) +
+      labs(x = "Date", y = "Value", color = "Site") +
+      ggtitle("Multiple Parameters Time Series") +
+      scale_color_discrete(name = "Site")
+    
+    print(gg)
+  })
+  
   # Download data as a CSV file
   output$downloadData <- downloadHandler(
     filename = function() {
-      paste("highlighted_data_", Sys.Date(), ".csv", sep = "")
+      start_date <- input$date_range[1]
+      end_date <- input$date_range[2]
+      selected_sites <- input$site
+      selected_parameters <- input$parameter
+      
+      paste0(selected_sites,"_",selected_parameters,"_",start_date,"_",end_date,  "_downloaded_", Sys.Date(), ".csv")
     },
     content = function(file) {
-      data <- filtered_data()
-      write.csv(data, file)
+      data <- filtered_data()%>%
+        mutate(data_doi = "10.5281/zenodo.8308733" )
+      write_csv(data, file)
     }
   )
 }
