@@ -13,7 +13,7 @@ CPF_download_file <- list.files() %>%
   keep(~ grepl("rossyndicate", .))
  # Grab the most recent cleaned and collated chemistry dataset
 # For the current release that file is `CPF_reservoir_chemistry_up_to_071023.csv`
-most_recent_chem <- read_csv_arrow(paste0(CPF_download_file,'/data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv'))
+most_recent_chem <- read_csv_arrow(paste0(CPF_download_file,'/data/cleaned/CPF_reservoir_chemistry_up_to_20230907.csv'))
 
 #Example plot of NO3 over time at four sites
 no3_example_plot <- most_recent_chem %>% 
