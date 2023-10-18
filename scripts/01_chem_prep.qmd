@@ -34,7 +34,7 @@ This looks like:
 
 ```{r merging}
 #read most recent file
-reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
+reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_20230925.csv')%>%
   #clean up dates
   mutate(Date = as.Date(parse_date_time(Date, 
                                   orders = c('%m/%d/%y',
@@ -50,21 +50,24 @@ reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_073123.csv')%>%
           #add data source column for data collected by ROSS (2021-2023) and Rhoades (2014-2023)
           data_source = case_when(Year >= 2021 ~ "ROSS",TRUE ~ "RHOADES"))%>%
   # Remove unnecessary columns
-  select(-c(SiteLabel, IDNo, SiteDescr, SampleType))%>%
+  dplyr::select(-c(SiteLabel, IDNo, SiteDescr, SampleType))%>%
    #add location metadata created by Sam Struthers
-  left_join(select(Sites,c(site_code,Lat,Long, location, Campaign, watershed, status)),by="site_code") %>%
+  left_join(dplyr::select(Sites,c(site_code,Lat,Long, location, Campaign, watershed, status)),by="site_code") %>%
    #add buffer burn severity data created by Katie Willi
-   left_join(select(buffer_sbs,c(watershed,Buffer_Level)),by="watershed") %>%
+   left_join(dplyr::select(buffer_sbs,c(watershed,Buffer_Level)),by="watershed") %>%
   #add watershed burn severity data created by Katie Willi
-  left_join(select(watershed_sbs,c(site_code,Watershed_Level)),by="site_code")%>%
+  left_join(dplyr::select(watershed_sbs,c(site_code,Watershed_Level)),by="site_code")%>%
   # Add distance upstream of pbd site
-  left_join(select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code")
+  left_join(dplyr::select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code")
 ```
 
 ```{r saving}
 # write a feather file named reservoir_chem_2021_2022_071023.feather
 #write_feather(reservoir_chemistry, "data/cleaned/reservoir_chem_2021_2022_071023.feather")
 # write a feather file named reservoir_chem_2021_2022_071023.feather
-write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_071023.csv" )
+write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_20230907.csv" )
+
 
 ```
+
+
