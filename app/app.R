@@ -17,6 +17,9 @@ library(tidyverse)
 
 res_chem <- readRDS("tidyResChem.RDS")
 
+chem_units <- read_xlsx(path = "Units_Cam_Peak.xlsx")%>%
+select(param_name = simple, param_units = Units , combined )
+
 chem_parameters  <- c("Turbidity","TSS", "ChlA", "DOC", "DTN", "pH", "ANC","SC",
                        "Na",  "NH4", "K", "Mg",  "Ca",  "F", "Cl", "NO3", "PO4","SO4")
 res_chem_long <- res_chem%>%
@@ -89,27 +92,31 @@ ui <- fluidPage(
 
 ##### ------SERVER----------####
 
-
 server <- function(input, output) {
   filtered_data <- reactive({
     start_date <- input$date_range[1]
     end_date <- input$date_range[2]
     selected_sites <- input$site
-    selected_parameters <- input$parameter  # Use input$parameter as a list
+    selected_parameters <- input$parameter
     
     res_chem_long %>%
       filter(Date >= start_date, Date <= end_date,
              Site %in% selected_sites,
-             Parameter %in% selected_parameters)  # Filter by selected parameters
+             Parameter %in% selected_parameters)
   })
   
   output$time_series_plot <- renderPlot({
     data <- filtered_data()
+    selected_parameter <- input$parameter[1]  # For individual plot, take the first selected parameter
+    unit <- chem_units %>%
+      filter(param_name == selected_parameter) %>%
+      pull(combined)
+    
     gg <- ggplot(data, aes(x = Date, y = value, color = Site)) +
       geom_line() +
       geom_point() +
-      labs(x = "Date", y = "Value", color = "Site") +
-      ggtitle(paste("Time Series Plot for", input$parameter)) +
+      labs(x = "Date", y = unit, color = "Site") +
+      ggtitle(paste("Time Series Plot for", selected_parameter)) +
       scale_color_discrete(name = "Site")
     
     print(gg)
@@ -119,23 +126,34 @@ server <- function(input, output) {
     start_date <- input$date_range[1]
     end_date <- input$date_range[2]
     selected_sites <- input$site
-    selected_parameters <- input$parameter  # Use input$parameter as a list
+    selected_parameters <- input$parameter
+    unit_list <- chem_units %>%
+      filter(param_name %in% selected_parameters) %>%
+      select(param_name, param_units, combined)
     
     data <- res_chem_long %>%
       filter(Date >= start_date, Date <= end_date,
              Site %in% selected_sites,
-             Parameter %in% selected_parameters)  # Filter by selected parameters
+             Parameter %in% selected_parameters)
     
     gg <- ggplot(data, aes(x = Date, y = value, color = Site)) +
       geom_line() +
       geom_point() +
-      facet_wrap(~Parameter, scales = "free_y", ncol = 2) +
-      labs(x = "Date", y = "Value", color = "Site") +
-      ggtitle("Multiple Parameters Time Series") +
+      facet_wrap(~Parameter, scales = "free_y", ncol = 2, labeller = labeller(Parameter = function(label) {
+        unit <- unit_list %>%
+          filter(param_name == label) %>%
+          pull(combined)
+        ylab(paste("Value (", unit, ")"))
+        paste(unit)
+      })) +
+      labs(x = "Date", color = "Site") +
       scale_color_discrete(name = "Site")
     
     print(gg)
   })
+  
+  
+
   
   # Download data as a CSV file
   output$downloadData <- downloadHandler(
@@ -145,11 +163,11 @@ server <- function(input, output) {
       selected_sites <- input$site
       selected_parameters <- input$parameter
       
-      paste0(selected_sites,"_",selected_parameters,"_",start_date,"_",end_date,  "_downloaded_", Sys.Date(), ".csv")
+      paste0(selected_sites, "_", selected_parameters, "_", start_date, "_", end_date, "_downloaded_", Sys.Date(), ".csv")
     },
     content = function(file) {
-      data <- filtered_data()%>%
-        mutate(data_doi = "10.5281/zenodo.8308733" )
+      data <- filtered_data() %>%
+        mutate(data_doi = "10.5281/zenodo.8308733")
       write_csv(data, file)
     }
   )
