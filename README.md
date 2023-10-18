@@ -1,5 +1,5 @@
 # Cameron Peak Fire Reservoir Study Data 
-Current release: (2021- 07/2023)
+Current release: (2021- 09/2023)
 
 [![DOI](https://zenodo.org/badge/673979750.svg)](https://zenodo.org/badge/latestdoi/673979750)
 
@@ -43,4 +43,4 @@ Samples were collected and processed using the Rocky Mountain Research Station's
 
 **Keywords**: Cameron Peak Fire, water quality, reservoirs, chlorophyll a, biogeochemistry
 
-**Version**: v2023.10.17
+**Version**: v2023.10.18
