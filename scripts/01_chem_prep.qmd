@@ -70,31 +70,4 @@ write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_
 
 ```
 
-Prep data for Shiny App
 
-```{r ShinyPrep}
-
-
-#Create table for shiny app
-sites_table <- reservoir_chemistry %>%
-  group_by(Site) %>%
-  #only grab post fire data
-  mutate(start_date = as.Date("2021-01-01"),
-         end_date = max(Date)) %>% 
-  ungroup()%>%
-  distinct(Site, .keep_all = TRUE) %>%
-  # only select location and date data
-  dplyr::select(Site, Long, Lat, start_date, end_date)
-
-## save as RDS ----------
-saveRDS(sites_table, file = "app/sites_table.RDS")
-
-# adding data_available column to tidyResChem
-# Removing Historical RMRS Data
-tidyResChem <- reservoir_chemistry %>% 
-  filter(Year>=2021)
-
-## save as RDS -------
-saveRDS(tidyResChem, file = "app/tidyResChem.RDS")
-
-```
