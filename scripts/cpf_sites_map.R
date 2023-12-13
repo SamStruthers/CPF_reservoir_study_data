@@ -1,12 +1,12 @@
 #This script will output cpf_sites_map.html so folks can view where sites are located
 
-source("scripts/package_loader.R")
-source("scripts/00_colors_and_groups.R")
-#00 colors reads in location data from 'data/metadata/cpf_sites.csv' into object Sites
 
-cpf_sites <- Sites%>%
+source("scripts/00_analysis_setup.R")
+#00_analysis_setup reads in location data from 'data/metadata/cpf_sites.csv' into object Sites
+
+cpf_sites <- site_meta%>%
   #remove sites with no location data
-  filter(!is.na(Lat))%>%
+  filter(!is.na(Lat)&!is.na(Long))%>%
   #make into a spatial object
   st_as_sf(coords=c("Long","Lat"), crs=4326)%>%
 #remove extra info
