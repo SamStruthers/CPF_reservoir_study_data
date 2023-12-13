@@ -15,16 +15,18 @@ This will be the primary document for cleaning data
 
 ```{r setup}
 #load packages and set up colors for plotting
-source("scripts/package_loader.R")
-source("scripts/00_colors_and_groups.R")
+source("scripts/00_analysis_setup.R")
 
+# Field measurements taken by ROSS technicians at sampling location
+# Time recorded in MT at site
+field_measurements <- read_csv("data/raw/ROSS_fieldMeasurements_121223.csv", show_col_types = FALSE)
 ```
 
 ### [**Goals:**]{.underline}
 
 #### This Document will:
 
--   Clean reservoir data from RMRS and make it usable for our analysis and to publish for funders
+-   Clean reservoir data from RMRS and make it usable for our analysis and to publish for funders and external researchers
 
 This looks like:
 
@@ -33,8 +35,10 @@ This looks like:
 -   Adding location characteristics
 
 ```{r merging}
+newest_raw_file <- "ReservoirChemistry_121223.csv"
+
 #read most recent file
-reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_20230925.csv')%>%
+reservoir_chemistry <- read_csv(paste0('data/raw/', newest_raw_file), show_col_types = FALSE)%>%
   #clean up dates
   mutate(Date = as.Date(parse_date_time(Date, 
                                   orders = c('%m/%d/%y',
@@ -52,22 +56,29 @@ reservoir_chemistry <- read_csv('data/raw/ReservoirChemistry_20230925.csv')%>%
   # Remove unnecessary columns
   dplyr::select(-c(SiteLabel, IDNo, SiteDescr, SampleType))%>%
    #add location metadata created by Sam Struthers
-  left_join(dplyr::select(Sites,c(site_code,Lat,Long, location, Campaign, watershed, status)),by="site_code") %>%
+  left_join(dplyr::select(site_meta,c(site_code,Lat,Long, location, Campaign, watershed, status)),by="site_code") %>%
    #add buffer burn severity data created by Katie Willi
    left_join(dplyr::select(buffer_sbs,c(watershed,Buffer_Level)),by="watershed") %>%
   #add watershed burn severity data created by Katie Willi
   left_join(dplyr::select(watershed_sbs,c(site_code,Watershed_Level)),by="site_code")%>%
-  # Add distance upstream of pbd site
-  left_join(dplyr::select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code")
+  # Add distance upstream of pbd site pulled from NHDplus by Katie Willi
+  left_join(dplyr::select(dist_from_pbd,c(site_code,distance_upstream_km)),by="site_code")%>%
+  left_join(field_measurements, by = "FCW_Number")%>%
+  mutate(dt = case_when( 
+    !is.na(Time) ~ as.POSIXct(paste0(Date," ", Time), format = "%Y-%m-%d %H:%M"), 
+                         TRUE ~ NA))
+
+
 ```
 
 ```{r saving}
 # write a feather file named reservoir_chem_2021_2022_071023.feather
 #write_feather(reservoir_chemistry, "data/cleaned/reservoir_chem_2021_2022_071023.feather")
 # write a feather file named reservoir_chem_2021_2022_071023.feather
-write_csv_arrow(reservoir_chemistry,"data/cleaned/CPF_reservoir_chemistry_up_to_20230907.csv" )
+# grab most recent date from chemistry dataset
+up_to_date <- format(max(reservoir_chemistry$Date), "%Y%m%d")
+
+write_csv_arrow(reservoir_chemistry,paste0("data/cleaned/CPF_reservoir_chemistry_up_to_",up_to_date, ".csv") )
 
 
 ```
-
-
